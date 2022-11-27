@@ -1,5 +1,12 @@
 from flask import Flask, request, jsonify, render_template
 import os
+import multiprocessing as mp
+
+# Our modules
+import power
+import data
+import image
+import cohort
 
 app = Flask(__name__,
     template_folder='../dist',
@@ -19,16 +26,55 @@ def validate_args(keywords, args, url):
 def index():
     return render_template('index.html')
 
+'''List cohorts'''
+@app.route('/data/list', methods=(['GET']))
+def list():
+    args = request.args
+    task = args['task'] if 'task' in args else None
+    return jsonify({'cohorts': cohort.ls_cohorts('anton')})
+
+'''Get info about subjects'''
+@app.route('/data/info', methods=(['GET']))
+def info():
+    args = request.args
+    args_err = validate_args(['cohort'], args, request.url) 
+    if args_err:
+        return args_err
+    coh = args['cohort'] if 'cohort' in args else None
+    return jsonify(cohort.get_cohort('anton', coh))
+
 '''Get or post subject FC'''
 @app.route('/data/fc', methods=(['GET', 'POST']))
 def fc():
     args = request.args
-# Optional: paradigm, session, format (image or raw), colorbar
+# Optional: task, session
     args_err = validate_args(['cohort', 'sub'], args, request.url) 
     if args_err:
         return args_err
     if request.method == 'GET':
-        return jsonify({'data': 'success'})
+        # Params
+        cohort = args['cohort']
+        sub = args['sub']
+        task = args['task'] if 'task' in args else None
+        ses = args['ses'] if 'ses' in args else None
+        colorbar = 'colorbar' in args
+        remap = 'remap' in args
+        # Load and display FC
+        fc = data.getfc('anton', cohort, sub, task, ses)
+        fc = data.vec2mat(fc)
+        if remap:
+            fc = power.remap(fc)
+        # Weird stuff with matplotlib and multithreading? crashes the process
+        # Can fix with mutliprocessing
+        q = mp.Queue()
+        def wrapper(q, fc, colorbar):
+            img = image.imshow(fc, colorbar)
+            q.put(img)
+        p = mp.Process(target=wrapper, args=(q,fc,colorbar))
+        p.start()
+        img = q.get()
+        p.join()
+        return jsonify({'data': img})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
