@@ -17,7 +17,7 @@ export default {
 
 <style scoped>
 #side {
-    grid-area: 1 / 1 / span 1 / span 1;
+    grid-area: 1 / 1 / span 2 / span 1;
     width: 300px;
 }
 </style>

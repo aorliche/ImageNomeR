@@ -40,14 +40,28 @@ def info():
     args_err = validate_args(['cohort'], args, request.url) 
     if args_err:
         return args_err
-    coh = args['cohort'] if 'cohort' in args else None
+    coh = args['cohort']
     return jsonify(cohort.get_cohort('anton', coh))
+
+'''Get subgroup of cohort'''
+@app.route('/data/group', methods=(['GET']))
+def group():
+    args = request.args
+    args_err = validate_args(['cohort', 'query'], args, request.url) 
+    if args_err:
+        return args_err
+    cohort = args['cohort']
+    query = args['query']
+    demo = data.get_demo('anton', cohort)
+    df = data.demo2df(demo)
+    group = data.make_group_query(df, query)
+    return jsonify(group)
 
 '''Get or post subject FC'''
 @app.route('/data/fc', methods=(['GET', 'POST']))
 def fc():
     args = request.args
-# Optional: task, session
+    # Optional: task, session
     args_err = validate_args(['cohort', 'sub'], args, request.url) 
     if args_err:
         return args_err
@@ -60,7 +74,7 @@ def fc():
         colorbar = 'colorbar' in args
         remap = 'remap' in args
         # Load and display FC
-        fc = data.getfc('anton', cohort, sub, task, ses)
+        fc = data.get_fc('anton', cohort, sub, task, ses)
         fc = data.vec2mat(fc)
         if remap:
             fc = power.remap(fc)
