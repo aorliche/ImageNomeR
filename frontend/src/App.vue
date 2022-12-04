@@ -1,13 +1,9 @@
 <template>
-  <v-app>
-    <v-main>
-        <div id='content'>
-            <SidePanel/>
-            <MainPanel/>
-            <BottomPanel/>
-        </div>
-    </v-main>
-  </v-app>
+    <div id='content'>
+        <SidePanel/>
+        <MainPanel/>
+        <BottomPanel/>
+    </div>
 </template>
 
 <script>
