@@ -30,6 +30,5 @@ export default {
     font-family: Arial, sans-serif;
     font-size: 12px;
     display: inline-grid;
-    margin: 8px;
 }
 </style>
