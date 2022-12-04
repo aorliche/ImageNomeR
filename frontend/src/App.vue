@@ -1,7 +1,13 @@
 <template>
-    <SidePanel/>
-    <MainPanel/>
-    <BottomPanel/>
+  <v-app>
+    <v-main>
+        <div id='content'>
+            <SidePanel/>
+            <MainPanel/>
+            <BottomPanel/>
+        </div>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
@@ -20,9 +26,10 @@ export default {
 </script>
 
 <style>
-#app {
+#content {
     font-family: Arial, sans-serif;
     font-size: 12px;
     display: inline-grid;
+    margin: 8px;
 }
 </style>

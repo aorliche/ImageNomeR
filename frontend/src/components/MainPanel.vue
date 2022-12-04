@@ -3,7 +3,7 @@
         <div v-if='store.display == "fc"'>
             <FC v-for="fc in store.selected('fc')" :key="fc.id" cohort='test' :sub='fc.sub' :task='fc.task' remap/>
         </div>
-        <div v-elseif='store.display != null'>
+        <div v-else-if='store.display != null'>
             <Demographics cohort='text' :field='store.display'/>
         </div>
     </div>
