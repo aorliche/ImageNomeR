@@ -1,9 +1,11 @@
 <template>
     <div id='bottom'>
-        <select multiple>
-            <option>Demographics</option>
-            <option>FC</option>
-        </select>
+        <v-btn-toggle v-model='store.display'>
+            <v-btn v-for='field in Object.keys(store.demo)' :key='field' :value='field'>
+                {{ field }}
+            </v-btn>
+            <v-btn key='fc' value='fc'>FC</v-btn>
+        </v-btn-toggle>
     </div>
 </template>
 

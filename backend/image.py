@@ -24,3 +24,10 @@ def histogram(ys, ylabels, bins=20, density=True):
         ax.hist(y, label=lab, bins=bins, density=density)
     return tobase64(fig)
     
+def groups_hist(df, groups, field):
+    ys = []
+    ylabels = []
+    for group in groups.keys():
+        ylabels.append(group)
+        ys.append(df.loc[groups[group], field])
+    return histogram(ys, ylabels)

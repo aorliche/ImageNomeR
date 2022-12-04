@@ -49,7 +49,7 @@ def demo2df(demo):
             dct[col][sub2idx[sub]] = val
     # Create DataFrame
     return pd.DataFrame(dct, index=subs)
-
+    
 '''
 def make_group(df, col, val_or_range):
     if isinstance(val_or_range, tuple):

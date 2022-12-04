@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import os
 import multiprocessing as mp
+import json
 
 # Our modules
 import power
@@ -56,6 +57,24 @@ def group():
     df = data.demo2df(demo)
     group = data.make_group_query(df, query)
     return jsonify(group)
+
+'''Get demographics graph'''
+@app.route('/data/demo/hist', methods=(['GET', 'POST']))
+def demo_hist():
+    if request.method == 'GET':
+        args = request.args
+    else:
+        args = request.form
+    args_err = validate_args(['cohort', 'groups', 'field'], args, request.url)
+    if args_err:
+        return args_err
+    cohort = args['cohort']
+    field = args['field']
+    groups = json.loads(args['groups'])
+    demo = data.get_demo('anton', cohort)
+    df = data.demo2df(demo)
+    img = image.groups_hist(df, groups, field)
+    return jsonify({'data': img})
 
 '''Get or post subject FC'''
 @app.route('/data/fc', methods=(['GET', 'POST']))
