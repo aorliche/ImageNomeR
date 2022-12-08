@@ -1,49 +1,69 @@
 <template>
-    <h3>
-        {{ cohort }} cohort 
-        <span v-if="!loading && !error">({{ store.subs.size }} subjects)</span>
-    </h3>
     <div v-if="loading">Loading...</div>
     <div v-else-if="error">{{ error }}</div>
     <div v-else>
-        <div class="type">
-            <h4>FC</h4>
-            <div>
+        <v-card title='FC'>
+            <v-card-subtitle>
                 {{ store.fc.length }} FCs 
                 <span v-if="store.selected('fc')">({{ store.selected('fc').length }} selected)</span>
+            </v-card-subtitle>
+            <div id='fc-list-div'>
+                <v-checkbox 
+                    v-for="fc in filteredFC.fc" 
+                    :key="fc.id" 
+                    v-model="fc.selected" 
+                    :label="fc.fname" 
+                    dense
+                    hide-details 
+                    class="checkbox-dense">
+                </v-checkbox>
             </div>
-            <ul>
-                <li v-for="fc in filteredFC.fc" :key="fc.id">
-                    <input type="checkbox" v-model="fc.selected">
-                    {{ fc.fname }}
-                </li>
-            </ul>
-            <div>
-                <input type="text" v-model="search.fc">
-            </div>
-        </div>
-        <div class='demographics'>
-            <h4>Demographics</h4>
-            <ul>
-                <li v-for="field in Object.keys(store.demo)" :key="field">
+            <v-text-field
+                label="Filter FCs"
+                v-model="search.fc"
+                dense
+                hide-details
+                class='padded'
+            ></v-text-field>
+        </v-card>
+        <v-card title='Demographics'>
+            <v-card-text>
+                <div v-for="field in Object.keys(store.demo)" :key="field">
                     <strong>{{ field }}</strong> {{ store.summary(field) }}
-                </li>
-            </ul>
-        </div>
-        <div class='groups'>
-            <h4>Groups</h4>
-            <div>
-                Group SQL 
-                <input type='text' v-model="query">
-                <button @click='makeGroup'>Create</button>
+                </div>
+            </v-card-text>
+        </v-card>
+        <v-card title='Groups'>
+            <v-card-subtitle>
+                Create groups based on demographics<br>
+                e.g., "age &gt; 180 and age &lt; 240"
+            </v-card-subtitle>
+            <v-row align='center'>
+                <v-col cols='8'>
+                    <v-text-field
+                        label="Group Query"
+                        v-model="query"
+                        dense
+                        hide-details
+                        class='padded'
+                    ></v-text-field>
+                </v-col>
+                <v-col cols='4'>
+                    <v-btn @click='makeGroup' class='padded-alt'>Create</v-btn>
+                </v-col>
+            </v-row>
+            <div class='checkbox-list-wrapper'>
+                <v-checkbox 
+                    v-for="group in store.groups" 
+                    :key="group.query" 
+                    v-model="group.selected" 
+                    :label="`${group.query} (${group.subs.length})`" 
+                    dense
+                    hide-details 
+                    class="checkbox-dense">
+                </v-checkbox>
             </div>
-            <ol>
-                <li v-for="group in store.groups" :key="group.query">
-                    <input type="checkbox" v-model="group.selected">
-                    {{ group.query }} ({{ group.subs.length }})
-                </li>
-            </ol>
-        </div>
+        </v-card>
     </div>
 </template>
 
@@ -93,7 +113,9 @@ export default {
                 }
                 this.store.fc = this.parseFC(json.fc);
                 this.store.demo = json.demo;
-                this.store.subs = this.getSubs(json.demo);
+                const subs = this.getSubs(json.demo);
+                this.store.subs = subs;
+                this.store.groups = [{query: 'All', subs: [...subs]}];
             })
             .catch(err => this.error = err);
         },
@@ -138,8 +160,8 @@ export default {
 </script>
 
 <style scoped>
-ul {
-    max-height: 100px;
+#fc-list-div {
+    max-height: 160px;
     overflow-y: scroll;
 }
 </style>

@@ -3,7 +3,7 @@
         <span v-if='loading'>Loading...</span>
         <span v-else-if='error'>{{ error }}</span>
         <div v-else>
-            <div>Subject {{ sub }}, {{ task }}</div>
+            <div>{{ sub }}, {{ task }}</div>
             <img v-bind:src="'data:image/png;base64,'+imageData">
         </div>
     </div>

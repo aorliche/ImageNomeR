@@ -77,37 +77,57 @@ def demo_hist():
     return jsonify({'data': img})
 
 '''Get or post subject FC'''
-@app.route('/data/fc', methods=(['GET', 'POST']))
+@app.route('/data/fc', methods=(['GET']))
 def fc():
     args = request.args
     # Optional: task, session
     args_err = validate_args(['cohort', 'sub'], args, request.url) 
     if args_err:
         return args_err
-    if request.method == 'GET':
-        # Params
-        cohort = args['cohort']
-        sub = args['sub']
-        task = args['task'] if 'task' in args else None
-        ses = args['ses'] if 'ses' in args else None
-        colorbar = 'colorbar' in args
-        remap = 'remap' in args
-        # Load and display FC
+    # Params
+    cohort = args['cohort']
+    sub = args['sub']
+    task = args['task'] if 'task' in args else None
+    ses = args['ses'] if 'ses' in args else None
+    colorbar = 'colorbar' in args
+    remap = 'remap' in args
+    # Load and display FC
+    fc = data.get_fc('anton', cohort, sub, task, ses)
+    fc = data.vec2mat(fc)
+    if remap:
+        fc = power.remap(fc)
+    img = image.imshow(fc, colorbar)
+    return jsonify({'data': img})
+
+@app.route('/analysis/fc_corr', methods=(['GET']))
+def fc_corr():
+    args = request.args
+    # Optional: task, session
+    args_err = validate_args(['cohort', 'query', 'field'], args, request.url) 
+    if args_err:
+        return args_err
+    # Params
+    cohort = args['cohort']
+    query = args['query']
+    field = args['field']
+    task = args['task'] if 'task' in args else None
+    ses = args['ses'] if 'ses' in args else None
+    remap = 'remap' in args
+    # Load demographics 
+    demo = data.get_demo('anton', cohort)
+    df = data.demo2df(demo)
+    # Load group
+    group = data.make_group_query(df, query) if query != 'All' else df.index
+    # Get FCs
+    fcs = []
+    for sub in group:
         fc = data.get_fc('anton', cohort, sub, task, ses)
         fc = data.vec2mat(fc)
         if remap:
             fc = power.remap(fc)
-        # Weird stuff with matplotlib and multithreading? crashes the process
-        # Can fix with mutliprocessing
-        q = mp.Queue()
-        def wrapper(q, fc, colorbar):
-            img = image.imshow(fc, colorbar)
-            q.put(img)
-        p = mp.Process(target=wrapper, args=(q,fc,colorbar))
-        p.start()
-        img = q.get()
-        p.join()
-        return jsonify({'data': img})
+        fc = data.mat2vec(fc)
+        fcs.append(fc)
+    rho = correlation.correlate_feat(fcs, )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)

@@ -16,6 +16,11 @@ def vec2mat(fc):
     mat[ones,ones] = 1
     return mat
 
+def mat2vec(fc):
+    d = fc.shape[0]
+    a,b = np.triu_indices(d,1)
+    return fc[a,b]
+
 def get_fc(user, cohort, sub, task=None, ses=None):
     task = f'_task-{task}' if task is not None else ''
     ses = f'_ses-{ses}' if ses is not None else ''

@@ -45,9 +45,6 @@ export default {
             formData.append('field', this.store.display);
             fetch(`/data/demo/hist`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
                 body: formData
             })
             .then(resp => resp.json())
