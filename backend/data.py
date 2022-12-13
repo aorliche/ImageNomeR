@@ -5,7 +5,7 @@ import pickle
 import pandas as pd
 import pandasql as ps
 
-def vec2mat(fc):
+def vec2mat(fc, fillones=True):
     n = len(fc)
     d = int(round((1+(1+8*n)**0.5)/2))
     a,b = np.triu_indices(d,1)
@@ -13,7 +13,8 @@ def vec2mat(fc):
     mat[a,b] = fc
     mat += mat.T
     ones = np.arange(d)
-    mat[ones,ones] = 1
+    if fillones:
+        mat[ones,ones] = 1
     return mat
 
 def mat2vec(fc):
@@ -66,10 +67,10 @@ def make_group(df, col, val_or_range):
             val_or_range = f'"{val_or_range}"'
         query = f'select * from df where {col} = {val_or_range}'
     return ps.sqldf(query, locals())
-'''
 
 def make_group_query(df, query):
     return list(df.query(query).index)
+'''
 
 def flatten(lst):
     return [item for sublist in lst for item in sublist]

@@ -8,15 +8,17 @@
                 <span v-if="store.selected('fc')">({{ store.selected('fc').length }} selected)</span>
             </v-card-subtitle>
             <div id='fc-list-div'>
-                <v-checkbox 
-                    v-for="fc in filteredFC.fc" 
-                    :key="fc.id" 
-                    v-model="fc.selected" 
-                    :label="fc.fname" 
-                    dense
-                    hide-details 
-                    class="checkbox-dense">
-                </v-checkbox>
+                <v-lazy
+                    v-for="fc in filteredFC" 
+                    :key="fc.id">
+                    <v-checkbox 
+                        v-model="fc.selected" 
+                        :label="fc.fname" 
+                        dense
+                        hide-details 
+                        class="checkbox-dense">
+                    </v-checkbox>
+                </v-lazy>
             </div>
             <v-text-field
                 label="Filter FCs"
@@ -95,7 +97,8 @@ export default {
     },
     computed: {
         filteredFC() {
-            return {fc: this.store.fc.filter(fc => fc.fname.includes(this.search['fc']))};
+            const fc = this.store.fc.filter(fc => fc.fname.includes(this.search['fc']));
+            return fc;
         }
     },
     methods: {

@@ -2,11 +2,11 @@
 <v-app>
     <v-main>
         <TopPanel cohort='test'/>
-        <v-row>
-            <v-col cols='3'>
+        <v-row dense>
+            <v-col cols='auto'>
                 <SidePanel/>
             </v-col>
-            <v-col cols='9'>
+            <v-col>
                 <v-container>
                     <v-row>
                         <MainPanel/>

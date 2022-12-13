@@ -8,6 +8,7 @@ export const useCohortStore = defineStore("CohortStore", {
             subs: [],
             groups: [],
             display: null,
+            corr: null,
         };
     },
     getters: {

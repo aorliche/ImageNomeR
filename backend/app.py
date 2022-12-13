@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 import os
-import multiprocessing as mp
 import json
 
 # Our modules
@@ -8,6 +7,7 @@ import power
 import data
 import image
 import cohort
+import correlation
 
 app = Flask(__name__,
     template_folder='../dist',
@@ -29,7 +29,7 @@ def index():
 
 '''List cohorts'''
 @app.route('/data/list', methods=(['GET']))
-def list():
+def ls():
     args = request.args
     task = args['task'] if 'task' in args else None
     return jsonify({'cohorts': cohort.ls_cohorts('anton')})
@@ -55,7 +55,7 @@ def group():
     query = args['query']
     demo = data.get_demo('anton', cohort)
     df = data.demo2df(demo)
-    group = data.make_group_query(df, query)
+    group = list(df.query(query).index)
     return jsonify(group)
 
 '''Get demographics graph'''
@@ -99,8 +99,35 @@ def fc():
     img = image.imshow(fc, colorbar)
     return jsonify({'data': img})
 
-@app.route('/analysis/fc_corr', methods=(['GET']))
-def fc_corr():
+@app.route('/analysis/corr/demo', methods=(['GET']))
+def corr_demo():
+    args = request.args
+    # Optional: task, session
+    args_err = validate_args(['cohort', 'query', 'field1', 'field2'], args, request.url)
+    if args_err:
+        return args_err
+    # Params
+    cohort = args['cohort']
+    query = args['query']
+    field1 = args['field1']
+    field2 = args['field2']
+    # Load demographics 
+    demo = data.get_demo('anton', cohort)
+    df = data.demo2df(demo)
+    # Load group
+    subset = df.query(query) if query != 'All' else df
+    if field1 == 'sex' or field2 == 'sex':
+        field = field2 if field1 == 'sex' else field1
+        m = subset.query('sex == "M"')[field]
+        f = subset.query('sex == "F"')[field]
+        img = image.violin([m,f], ['Male', 'Female'], field)
+    else:
+        img = image.scatter(subset[field1], subset[field2], field1, field2)
+    return jsonify({'data': img})
+
+'''Correlation of demographic feature with FC'''
+@app.route('/analysis/corr/fc', methods=(['GET']))
+def corr_fc():
     args = request.args
     # Optional: task, session
     args_err = validate_args(['cohort', 'query', 'field'], args, request.url) 
@@ -117,17 +144,26 @@ def fc_corr():
     demo = data.get_demo('anton', cohort)
     df = data.demo2df(demo)
     # Load group
-    group = data.make_group_query(df, query) if query != 'All' else df.index
+    if query == 'All':
+        group = df.index
+        demo_field = df[field]
+    else:
+        qres = df.query(query)
+        print(type(qres.index))
+        group = list(qres.index)
+        demo_field = qres[field]
     # Get FCs
     fcs = []
     for sub in group:
         fc = data.get_fc('anton', cohort, sub, task, ses)
-        fc = data.vec2mat(fc)
-        if remap:
-            fc = power.remap(fc)
-        fc = data.mat2vec(fc)
         fcs.append(fc)
-    rho = correlation.correlate_feat(fcs, )
+    cat = 'M' if field == 'sex' else None
+    rho = correlation.correlate_feat(fcs, demo_field, cat=cat)
+    rho = data.vec2mat(rho, fillones=False)
+    if remap:
+        rho = power.remap(rho)
+    img = image.imshow(rho, colorbar=True)
+    return jsonify({'data': img})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)

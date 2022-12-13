@@ -45,6 +45,22 @@ def groups_hist_private(df, groups, field):
         ys.append(df.loc[groups[group], field])
     return histogram(ys, ylabels)
 
+
+def scatter_private(var1, var2, name1, name2):
+    fig, ax = plt.subplots()
+    ax.scatter(var1, var2)
+    ax.set_xlabel(name1)
+    ax.set_ylabel(name2)
+    return tobase64(fig)
+
+def violin_private(data, labels, field):
+    fig, ax = plt.subplots()
+    ax.violinplot(data, positions=[1,2])
+    ax.set_xticks([1,2])
+    ax.set_xticklabels(labels)
+    ax.set_ylabel(field)
+    return tobase64(fig)
+
 # Weird stuff with matplotlib and multithreading? crashes the process
 # Can fix with mutliprocessing
 def imshow(fc, colorbar=True):
@@ -52,3 +68,9 @@ def imshow(fc, colorbar=True):
 
 def groups_hist(df, groups, field):
     return mp_wrap(groups_hist_private, df, groups, field)
+
+def scatter(var1, var2, name1, name2):
+    return mp_wrap(scatter_private, var1, var2, name1, name2)
+
+def violin(data, labels, field):
+    return mp_wrap(violin_private, data, labels, field)

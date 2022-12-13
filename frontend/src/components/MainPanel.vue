@@ -1,5 +1,8 @@
 <template>
     <div id='main'>
+        <div v-if='store.display == "corr"'>
+            <img v-bind:src="'data:image/png;base64,'+store.corr">
+        </div>
         <div v-if='store.display == "fc"'>
             <v-col cols='11' v-if='store.groups.filter(g => g.selected).length > 0'>
                 <v-pagination
